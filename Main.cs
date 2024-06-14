@@ -1,21 +1,12 @@
 ﻿using MelonLoader;
 using UnityEngine;
 using Riptide;
-//using ImGuiNET;
-using UniverseLib.Input;
 using UniverseLib.UI;
-using UniverseLib;
-using UnityEngine.UI;
 using UniverseLib.UI.Models;
 using Riptide.Utils;
-using UnityEngine.SocialPlatforms;
-using System.Runtime.InteropServices;
-using static MelonLoader.MelonLogger;
 using System;
-using System.Configuration;
-using System.Threading;
-using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using UnityEngine.Networking;
 
 namespace TestMod
 {
@@ -37,12 +28,14 @@ namespace TestMod
         private IntPtr context;
         public static string txt_ip = "127.0.0.1";
         public static string txt_port = "7777";
-        public GameObject player2; // player2 is a model not real player 2
+        public GameObject player2_Model;
+        public GameObject player2;
         private GameObject LocalPlayer;
         public static Server server;
         public static Client client;
         public static int ServerMode = -1;
         public static Vector3 p2_loc = Vector3.zero;
+        public static Vector3 p2_loc_old = Vector3.zero;
         public static UIBase UiBase { get; private set; }
 
         void MyModEntryPoint()
@@ -96,15 +89,9 @@ namespace TestMod
         [MessageHandler(1)]
         private static void HandleSomeMessageFromServer(ushort id, Message message)
         {
-
             float[] floats = message.GetFloats();
             p2_loc = new Vector3(floats[0], floats[1], floats[2]);
-            
-
-//            MelonLogger.Msg($"vec: {p2_loc}");
         }
-
-        //        public GameClient gamecl;
         public override void OnInitializeMelon() {
             RiptideLogger.Initialize(MelonLogger.Msg, MelonLogger.Msg, MelonLogger.Warning, MelonLogger.Error, false);
             MyModEntryPoint();
@@ -119,8 +106,11 @@ namespace TestMod
             LevelName = sceneName;
             MelonLogger.Msg("OnSceneWasInitialized: " + buildindex.ToString() + " | " + sceneName);
             LocalPlayer = GameObject.Find("Player");
-            player2 = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            player2.transform.localScale = new Vector3(1.1f, 1.7f, 1.1f);
+            player2_Model = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            player2_Model.AddComponent<Rigidbody>();
+            player2_Model.transform.localScale = new Vector3(1.1f, 1.7f, 1.1f);
+//            player2 = CreateWebPlayer();
+
 
 
         }
@@ -131,7 +121,11 @@ namespace TestMod
 
         public override void OnUpdate() // Runs once per frame.
         {
-            player2.transform.position = p2_loc;
+            if(!(p2_loc == p2_loc_old))
+            {
+                player2_Model.transform.localPosition = p2_loc;
+            }
+            p2_loc_old = p2_loc;
             if (LocalPlayer != null && ServerMode == 1)
             {
                 Message message = Message.Create(MessageSendMode.Unreliable, 1);
@@ -153,6 +147,10 @@ namespace TestMod
 
         public override void OnFixedUpdate() // Can run multiple times per frame. Mostly used for Physics.
         {
+            if (Input.GetKeyDown(KeyCode.K))
+            {
+
+            }                                                                                                                                                                                                                  
             if(ServerMode == 0)
             {
                 server.Update();
@@ -212,7 +210,16 @@ namespace TestMod
             client.Connect($"{txt_ip}:{txt_port}", 5, 0, null, true);
             ServerMode = 1;
         }
-        
+
+        public GameObject CreateWebPlayer()
+        {
+            GameObject WepPlayer = Object.Instantiate(LocalPlayer, new Vector3(0, 0, 0), Quaternion.identity);
+            
+
+            return WepPlayer;
+        }
+
+
     }
 
 
@@ -283,5 +290,6 @@ public class MyPanel : UniverseLib.UI.Panels.PanelBase
         MelonLogger.Msg($"Input Field Value Changed: {value}");
         TestMod.TestMod.txt_port = value;
     }
+
 
 }
