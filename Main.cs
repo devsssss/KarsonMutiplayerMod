@@ -14,11 +14,11 @@ namespace TestMod
     public static class BuildInfo
     {
         public const string Name = "mutiplayer mod"; // Name of the Mod.  (MUST BE SET)
-        public const string Description = "karson mutiplayer mod"; // Description for the Mod.  (Set as null if none)
+        public const string Description = "karlson mutiplayer mod"; // Description for the Mod.  (Set as null if none)
         public const string Author = "8bitdev"; // Author of the Mod.  (MUST BE SET)
         public const string Company = null; // Company that made the Mod.  (Set as null if none)
         public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
-        public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
+        public const string DownloadLink = "https://github.com/devsssss/KarsonMutiplayerMod/releases"; // Download Link for the Mod.  (Set as null if none)
     }
 
     public class TestMod : MelonMod
@@ -36,6 +36,7 @@ namespace TestMod
         public static int ServerMode = -1;
         public static Vector3 p2_loc = Vector3.zero;
         public static Vector3 p2_loc_old = Vector3.zero;
+        private Mesh GrableMesh; 
         public static UIBase UiBase { get; private set; }
 
         void MyModEntryPoint()
@@ -54,7 +55,20 @@ namespace TestMod
             UniverseLib.Universe.Init(startupDelay, OnInitialized, LogHandler, config);
         }
 
-        
+        void SetupGunModel()
+        {
+            MeshFilter[] meshFilters = Resources.FindObjectsOfTypeAll<MeshFilter>();
+
+            foreach (MeshFilter meshFilter in meshFilters)
+            {
+                if (meshFilter.sharedMesh != null && meshFilter.sharedMesh.name == "default_2")
+                {
+                    GrableMesh = meshFilter.sharedMesh;
+                    MelonLogger.Msg("Found mesh named default_2.");
+                    break;
+                }
+            }
+        }
         void OnInitialized()
         {
             UiBase = UniversalUI.RegisterUI("my.unique.ID", UiUpdate);
@@ -79,9 +93,6 @@ namespace TestMod
         {
             float[] floats = message.GetFloats();
             p2_loc = new Vector3(floats[0], floats[1], floats[2]);
-
-
-            //            MelonLogger.Msg($"vec: {p2_loc}");
         }
 
 
@@ -95,6 +106,7 @@ namespace TestMod
         public override void OnInitializeMelon() {
             RiptideLogger.Initialize(MelonLogger.Msg, MelonLogger.Msg, MelonLogger.Warning, MelonLogger.Error, false);
             MyModEntryPoint();
+            SetupGunModel();
         }
 
         
@@ -109,7 +121,7 @@ namespace TestMod
             player2_Model = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player2_Model.AddComponent<Rigidbody>();
             player2_Model.transform.localScale = new Vector3(1.1f, 1.7f, 1.1f);
-//            player2 = CreateWebPlayer();
+//xcd            player2 = CreateWebPlayer();
 
 
 
@@ -119,9 +131,31 @@ namespace TestMod
             MelonLogger.Msg("OnSceneWasUnloaded: " + buildIndex.ToString() + " | " + sceneName);
         }
 
+        public int GetWeaponId(DetectWeapons LP_DetectWeapons) // Get Weapon Id Turns The Gun That you are holding into a int class
+        {
+            
+            if (!LP_DetectWeapons.HasGun()) { return -1;} // Has No Guns
+            if (LP_DetectWeapons.GetWeaponScript().name == "Grappler") { return 0;} // Gun = Grappler
+            RangedWeapon LC_RangedWeapon = (RangedWeapon) LP_DetectWeapons.GetWeaponScript();
+            if (LC_RangedWeapon == null) {  return -1;} // Unkown Gun
+            if (LC_RangedWeapon.attackSpeed == 0.4f) { return 1;} // Gun = Pistel
+            if (LC_RangedWeapon.attackSpeed == 0.15f) { return 2; } // Gun = Uzi
+            if (LC_RangedWeapon.attackSpeed == 1f) // The Boomer And Shotgun use attackSpeed 1
+            {
+                if(LC_RangedWeapon.pushBackForce == 60) { return 3;} // Gun = Shotgun
+                if (LC_RangedWeapon.pushBackForce == 50) { return 4; } // Gun = Boomer
+            }
+                return -1; // Unkown Gun
+
+        }
         public override void OnUpdate() // Runs once per frame.
         {
-            if(!(p2_loc == p2_loc_old))
+            DetectWeapons LP_DetectWeapons = LocalPlayer.GetComponentInChildren<DetectWeapons>();
+            if (LP_DetectWeapons != null)
+            {
+                if (LP_DetectWeapons.HasGun()) { MelonLogger.Msg($"Weapon Id : {GetWeaponId(LP_DetectWeapons)}"); }
+            }
+            if (!(p2_loc == p2_loc_old))
             {
                 player2_Model.transform.localPosition = p2_loc;
             }

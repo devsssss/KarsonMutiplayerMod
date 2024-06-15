@@ -272,8 +272,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "C:\Users\Devin\Documents\melonloader_mods\Karlson_mutiplayer_Ui\Src\Output\TestMod.dll" "C:\Users\Devin\Documents\melonloader_mods\Karlson_mutiplayer_Ui\Game\Mods"
-</PostBuildEvent>
+    <PostBuildEvent>copy "C:\Users\Devin\Documents\melonloader_mods\Karlson_mutiplayer_Ui\Src\Output\TestMod.dll" "C:\Users\Devin\Documents\melonloader_mods\Karlson_mutiplayer_Ui\Game\Mods"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="packages\ImGui.NET.1.90.6.1\build\net40\ImGui.NET.targets" Condition="Exists('packages\ImGui.NET.1.90.6.1\build\net40\ImGui.NET.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
