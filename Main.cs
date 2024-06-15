@@ -36,7 +36,7 @@ namespace TestMod
         public static int ServerMode = -1;
         public static Vector3 p2_loc = Vector3.zero;
         public static Vector3 p2_loc_old = Vector3.zero;
-        private Mesh GrableMesh; 
+        private Mesh GrableMesh;
         public static UIBase UiBase { get; private set; }
 
         void MyModEntryPoint()
